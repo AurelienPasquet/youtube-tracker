@@ -1,19 +1,20 @@
+from datetime import datetime, date
+from winotify import Notification
 from flask import Flask, request
 from flask_cors import CORS
+
+import argparse
 import csv
 import os
-from datetime import datetime, date
-import argparse
-from winotify import Notification
 
 # ----------------------
 # Arguments
 # ----------------------
 parser = argparse.ArgumentParser(description="YouTube Tracker Server")
-parser.add_argument("--limit", type=int, required=True, help="Limite quotidienne en minutes")
+parser.add_argument("--limit", type=int, required=True, help="Daily limit in minutes")
 args = parser.parse_args()
 
-DAILY_LIMIT = args.limit * 60  # en secondes
+DAILY_LIMIT = args.limit * 60  # in seconds
 LOG_FILE = "youtube_log.csv"
 
 app = Flask(__name__)
@@ -28,7 +29,7 @@ if not os.path.exists(LOG_FILE):
         writer.writerow(["timestamp", "video_title", "video_url", "session_seconds"])
 
 # ----------------------
-# Suivi du temps quotidien
+# Daily time tracking
 # ----------------------
 daily_usage = {}
 
@@ -43,14 +44,14 @@ def add_daily_time(seconds):
         minutes = f"0{args.limit % 60}" if args.limit % 60 < 10 else f"{args.limit % 60}"
         toast = Notification(
             app_id="YouTube Tracker",
-            title="⚠️ Attention !",
-            msg=f"Tu as dépassé {hours}H{minutes} de visionnage aujourd'hui.",
-            icon="C:\\Windows\\System32\\shell32.dll"  # tu peux mettre une icône custom
+            title="⚠️ Caution !",
+            msg=f"You have exceeded {hours}H{minutes} of viewing time today.",
+            icon="C:\\Windows\\System32\\shell32.dll"  # or custom icon
         )
         toast.show()
 
 # ----------------------
-# Endpoint Flask
+# Flask endpoint 
 # ----------------------
 @app.route("/log", methods=["POST"])
 def log():
@@ -68,4 +69,4 @@ def log():
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=False)  # debug=False car tu veux en arrière-plan
+    app.run(port=5000, debug=False)  # debug=False for background run

@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         YouTube Tracker Flask (amélioré)
+// @name         YouTube Tracker Flask
 // @namespace    yt-tracker
 // @version      1.1
-// @description  Track YouTube watch time and send to Flask server (avec heartbeat + détection navigation)
+// @description  Track YouTube watch time and send to Flask server (with heartbeat + navigation detection)
 // @match        https://www.youtube.com/*
 // @grant        none
 // ==/UserScript==
@@ -11,11 +11,11 @@
     let startTime = null;
     let videoElement = null;
 
-    // Envoi d'une session au serveur Flask
+    // Sending a session to the Flask server
     function logSession() {
         if (startTime && videoElement) {
             const now = Date.now();
-            const sessionTime = Math.round((now - startTime) / 1000); // secondes
+            const sessionTime = Math.round((now - startTime) / 1000); // seconds
             startTime = null;
 
             const title = document.title.replace(" - YouTube", "");
@@ -29,15 +29,15 @@
                     url: url,
                     session_time: sessionTime
                 })
-            }).catch(err => console.error("Erreur envoi Flask:", err));
+            }).catch(err => console.error("Flask sending error:", err));
 
             console.log(`[YT Tracker] ${title} (${url}) : +${sessionTime}s`);
         }
     }
 
-    // Attacher les listeners sur le player vidéo
+    // Attach listeners to the video player
     function attachTracker(video) {
-        if (videoElement === video) return; // déjà attaché
+        if (videoElement === video) return; // already attached
         videoElement = video;
 
         video.addEventListener("play", () => {
@@ -49,22 +49,22 @@
 
         window.addEventListener("beforeunload", logSession);
 
-        console.log("[YT Tracker] Tracker attaché au player");
+        console.log("[YT Tracker] Tracker attached to the player");
     }
 
-    // ✅ Heartbeat : toutes les 30s, on sauvegarde
+    // ✅ Heartbeat: we save every 30 seconds
     setInterval(() => {
         if (startTime) {
             logSession();
-            startTime = Date.now(); // redémarrer le compteur
+            startTime = Date.now(); // reset the counter
         }
     }, 30_000);
 
-    // ✅ Navigation interne (SPA YouTube → changement d’URL sans rechargement complet)
+    // ✅ Internal navigation (YouTube SPA → URL change without full reload)
     function patchHistoryMethod(method) {
         const orig = history[method];
         return function() {
-            logSession(); // log avant changement
+            logSession(); // log before change
             return orig.apply(this, arguments);
         };
     }
@@ -72,7 +72,7 @@
     history.replaceState = patchHistoryMethod("replaceState");
     window.addEventListener("popstate", logSession);
 
-    // Surveiller le DOM pour détecter le player vidéo
+    // Monitor the DOM to detect the video player
     const observer = new MutationObserver(() => {
         const video = document.querySelector("video");
         if (video) attachTracker(video);
