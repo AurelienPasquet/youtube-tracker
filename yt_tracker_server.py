@@ -59,16 +59,38 @@ def add_daily_time(seconds):
 @app.route("/log", methods=["POST"])
 def log():
     data = request.json
-    if data["session_time"] == 0:
-        return  {"status": "ok"}
+    session_time = int(data.get("session_time", 0))
+    url = data.get("url", "")
     timestamp = datetime.now().isoformat(timespec="seconds")
 
-    print([timestamp, data["title"], data["url"], data["session_time"]])
-    with open(LOG_FILE_PATH, "a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow([timestamp, data["title"], data["url"], data["session_time"]])
+    # Skip if session time = 0 or url = homepage
+    if session_time == 0 or url.strip() in ["https://www.youtube.com/", "https://www.youtube.com"]:
+        return {"status": "skipped"}
 
-    add_daily_time(data["session_time"])
+    rows = []
+    try:
+        with open(LOG_FILE_PATH, "r", encoding="utf-8") as f:
+            rows = list(csv.reader(f))
+    except FileNotFoundError:
+        pass  # file does not exist yet
+
+    if rows and rows[-1][1] == url:
+        # Accumulate session time with the last row
+        prev_time = int(rows[-1][2])
+        new_time = prev_time + session_time
+        rows[-1] = [timestamp, url, str(new_time)]
+        with open(LOG_FILE_PATH, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerows(rows)
+        print(f"Updated last row: {rows[-1]}")
+    else:
+        # Append new row
+        with open(LOG_FILE_PATH, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([timestamp, url, session_time])
+        print(f"Appended new row: {[timestamp, url, session_time]}")
+
+    add_daily_time(session_time)
     return {"status": "ok"}
 
 
