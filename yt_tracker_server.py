@@ -15,7 +15,10 @@ parser.add_argument("--limit", type=int, required=True, help="Daily limit in min
 args = parser.parse_args()
 
 DAILY_LIMIT = args.limit * 60  # in seconds
+
+PATH = os.path.abspath(os.path.dirname(__file__))
 LOG_FILE = "youtube_log.csv"
+LOG_FILE_PATH = os.path.join(PATH, LOG_FILE)
 
 app = Flask(__name__)
 CORS(app, origins=["https://www.youtube.com"])
@@ -23,8 +26,8 @@ CORS(app, origins=["https://www.youtube.com"])
 # ----------------------
 # Init CSV
 # ----------------------
-if not os.path.exists(LOG_FILE):
-    with open(LOG_FILE, "w", newline="", encoding="utf-8") as f:
+if not os.path.exists(LOG_FILE_PATH):
+    with open(LOG_FILE_PATH, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["timestamp", "video_title", "video_url", "session_seconds"])
 
@@ -56,11 +59,12 @@ def add_daily_time(seconds):
 @app.route("/log", methods=["POST"])
 def log():
     data = request.json
+    if data["session_time"] == 0:
+        return  {"status": "ok"}
     timestamp = datetime.now().isoformat(timespec="seconds")
 
     print([timestamp, data["title"], data["url"], data["session_time"]])
-
-    with open(LOG_FILE, "a", newline="", encoding="utf-8") as f:
+    with open(LOG_FILE_PATH, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow([timestamp, data["title"], data["url"], data["session_time"]])
 

@@ -2,6 +2,11 @@ import matplotlib.ticker as mticker
 import matplotlib.pyplot as plt
 import pandas as pd
 import argparse
+import os
+
+PATH = os.path.abspath(os.path.dirname(__file__))
+LOG_FILE = "youtube_log.csv"
+LOG_FILE_PATH = os.path.join(PATH, LOG_FILE)
 
 # ----------------------
 # Arguments
@@ -14,7 +19,7 @@ args = parser.parse_args()
 # ----------------------
 # Load CSV
 # ----------------------
-df = pd.read_csv("youtube_log.csv")
+df = pd.read_csv(LOG_FILE_PATH)
 df["timestamp"] = pd.to_datetime(df["timestamp"])
 df["date"] = df["timestamp"].dt.date
 df["week"] = df["timestamp"].dt.strftime("%Y-W%U")
