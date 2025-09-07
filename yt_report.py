@@ -33,7 +33,7 @@ if args.period == "day":
     title = "Daily YouTube Watch Time"
     xlabel = "Date"
 elif args.period == "week":
-    grouped = df.groupby("week")["session_seconds"].sum()
+    grouped = df.resample("W-MON", on="timestamp")["session_seconds"].sum()
     title = "Weekly YouTube Watch Time"
     xlabel = "Week"
 else:  # month
@@ -55,7 +55,7 @@ grouped_hhmm = grouped.apply(seconds_to_hhmm)
 # Print report to console
 # ----------------------
 print("\n=== YouTube Watch Time Report ===")
-print(grouped_hhmm.to_string())
+print(grouped_hhmm.to_string().split("Freq")[0])
 
 # ----------------------
 # Plot improved bar chart
