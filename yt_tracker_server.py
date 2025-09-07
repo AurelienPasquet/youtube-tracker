@@ -63,8 +63,8 @@ def log():
     url = data.get("url", "")
     timestamp = datetime.now().isoformat(timespec="seconds")
 
-    # Skip if session time = 0 or url = homepage
-    if session_time == 0 or url.strip() in ["https://www.youtube.com/", "https://www.youtube.com"]:
+    # Skip if session time = 0 or url isn't a video page
+    if session_time == 0 or not "https://www.youtube.com/watch?v=" in url.strip():
         return {"status": "skipped"}
 
     rows = []
