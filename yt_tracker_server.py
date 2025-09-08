@@ -4,6 +4,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 import argparse
+import shutil
 import csv
 import os
 
@@ -127,5 +128,6 @@ def log():
 
 
 if __name__ == "__main__":
+    shutil.copy(LOG_FILE_PATH, os.path.join(PATH, "youtube_log_backup.csv"))
     # debug=False recommended for background usage
     app.run(port=5000, debug=False)
